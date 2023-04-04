@@ -1,0 +1,161 @@
+#tasks file for install-Hadoop
+---
+- name: Create Hadoop Path
+  file: 
+    path: "{{ item }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ hadoop_create_path }}"
+
+- name: Download Hadoop
+  become: true
+  get_url:
+    url: "https://archive.apache.org/dist/hadoop/common/hadoop-{{ hadoop_version }}/hadoop-{{ hadoop_version }}.tar.gz"
+    dest: "{{ download_path }}/hadoop-{{ hadoop_version }}.tar.gz"
+    mode: "0755"
+
+- name: Extract Hadoop archive
+  become: true
+  unarchive:
+    src: "{{ download_path }}/hadoop-{{ hadoop_version }}.tar.gz"
+    dest: "{{ hadoop_path }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+    remote_src: yes
+
+
+- name: Remove Hadoop Directory if already created
+  become: true
+  file:
+    path: "{{ hadoop_path }}/hadoop"
+    state: absent
+
+- name: Rename Hadoop Dir
+  shell: "mv -f {{ hadoop_path }}/hadoop-{{ hadoop_version }} {{ hadoop_path }}/hadoop"
+  become: true
+
+- name: Check if .profile exists
+  stat:
+    path: "/home/{{ user }}/.profile"
+  register: profile_file
+
+- name: Create .profile if it doesn't exist
+  file:
+    path: "/home/{{ user }}/.profile"
+    state: touch
+    mode: "0755"
+  when: not profile_file.stat.exists
+
+- name: Add Hadoop binaries path in Profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    regexp: "^PATH=.*$"
+    line: "PATH=/home/hadoop/hadoop/bin:/home/hadoop/hadoop/sbin:$PATH"
+ 
+
+- name: Set HADOOP_HOME in Profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    regexp: "^export HADOOP_HOME=.*$"
+    line: "export HADOOP_HOME=/home/hadoop/hadoop"
+
+- name: Set JAVA_HOME in Profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    regexp: "^export JAVA_HOME=.*$"
+    line: "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64"
+
+
+- name: Set YARN_HOME in Profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    regexp: "^export YARN_HOME=.*$"
+    line: "export YARN_HOME=$HADOOP_HOME"
+
+- name: Set HIVE_HOME in Profile
+  lineinfile:
+    dest: "/home/{{ user }}/.profile"
+    regexp: "^export HIVE_HOME=.*$"
+    line: "export HIVE_HOME=/home/hadoop/hive"
+
+- name: Check if Bashrc exists
+  stat:
+    path: "/home/{{ user }}/.bashrc"
+  register: bashrc_file
+
+- name: Create Bashrc if it doesn't exist
+  file:
+    path: "/home/{{ user }}/.bashrc"
+    state: touch
+    mode: "0755"
+  when: not bashrc_file.stat.exists
+
+- name: Set HADOOP_HOME in Bashrc
+  lineinfile:
+    dest: "/home/{{ user }}/.bashrc"
+    regexp: "^export HADOOP_HOME=.*$"
+    line: "export HADOOP_HOME=/home/hadoop/hadoop" 
+
+- name: Set JAVA_HOME in Bashrc
+  lineinfile:
+    dest: "/home/{{ user }}/.bashrc"
+    regexp: "^export JAVA_HOME=.*$"
+    line: "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre"
+
+
+- name: Set YARN_HOME in Bashrc
+  lineinfile:
+    dest: "/home/{{ user }}/.bashrc"
+    regexp: "^export YARN_HOME=.*$"
+    line: "export YARN_HOME=$HADOOP_HOME"
+
+- name: Set HIVE_HOME in Bashrc
+  lineinfile:
+    dest: "/home/{{ user }}/.bashrc"
+    regexp: "^export HIVE_HOME=.*$"
+    line: "export HIVE_HOME=/home/hadoop/hive"
+    
+- name: Set PATH in Bashrc
+  lineinfile:
+    dest: "/home/{{ user }}/.bashrc"
+    regexp: "^export PATH=.*$"
+    line: "export PATH=${PATH}:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin:${HIVE_HOME}/bin"
+
+- name: Set JAVA_HOME in Hadoop Env
+  lineinfile:
+    dest: "{{ hadoop_config_path }}/hadoop-env.sh"
+    regexp: "^export JAVA_HOME=.*$"
+    line: "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre"
+
+
+- name: Copy Hadoop core-site.xml
+  template: src=core-site.xml.j2 dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+  vars:
+    defaultFS: "{{ hostvars[groups.masters.0] }}"
+
+- name: Copy Hadoop hdfs-site.xml
+  template: src=hdfs-site.xml.j2 dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+  vars: 
+    nbrWorkerNodes: "{{ groups['workers'] | length }}"
+
+- name: Copy Hadoop mapred-site.xml
+  template: src=mapred-site.xml dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+  
+- name: Copy Hadoop yarn-site.xml
+  template: src=yarn-site.xml.j2 dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+  vars:
+    IPaddressMasterNode: "{{ hostvars[groups.masters.0]['ansible_host'] }}"
+
+- name: Copy Hadoop workers
+  template: src=workers dest={{ hadoop_config_path }} mode=644 owner={{ user }} group = {{ group }}
+
+- name: set Rights
+  file:
+    path: /home/hadoop/hadoop
+    mode: '0777'
+    recurse: true
+  

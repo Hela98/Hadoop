@@ -1,0 +1,76 @@
+---
+# - name: format node
+#   shell: "su - hadoop bash -c 'nohup hdfs namenode -format </dev/null >/dev/null 2>&1 &'"
+#   become: true
+#   become_user: root
+
+# - name: start node
+#   shell: "sleep 30"
+
+
+# - name: start node
+#   shell: "su - hadoop bash -c 'nohup start-all.sh </dev/null >/dev/null 2>&1 &'"
+#   become: true
+#   become_user: root
+
+# - name: start node
+#   shell: "sleep 90"
+
+
+- name: Download Hive
+  shell: "wget -O {{ download_path }}/hive-{{ hive_version }}.tar.gz https://dlcdn.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: Unzip hive
+  shell: "tar zxf {{ download_path }}/hive-{{hive_version}}.tar.gz -C {{ hive_path }}"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: Remove hive Directory if already created
+  shell: "rm -rf {{ hive_path }}/hive"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: Rename hive Dir
+  shell: "mv -f {{ hive_path }}/apache-hive-{{ hive_version }}-bin {{ hive_path }}/hive"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: set Rights
+  shell: chmod 777 -Rf /home/hadoop/hive
+
+
+
+
+- name: create warehouse
+  shell: "su - hadoop bash -c 'hdfs dfs -mkdir -p /home/hadoop/hive/warehouse'"
+  become: true
+  become_user: root
+
+- name: create tmp
+  shell: "su - hadoop bash -c 'hdfs dfs -mkdir /home/hadoop/tmp'"
+  become: true
+  become_user: root
+
+- name: permission warehouse
+  shell: "su - hadoop bash -c 'hdfs dfs -chmod g+w /home/hadoop/hive/warehouse'"
+  become: true
+  become_user: root
+
+- name: permission tmp
+  shell: "su - hadoop bash -c 'hdfs dfs -chmod g+w /home/hadoop/tmp'"
+  become: true
+  become_user: root
+
+- name: Copy Hive hive-site.xml
+  template: src=hive-site.xml dest={{ hive_config_path }} mode=644 owner={{ user }}
+
+- name: Copy Hive hive-env.sh
+  template: src=hive-env.sh dest={{ hive_config_path }} mode=644 owner={{ user }}
+
+# - name: init db
+#   shell: "schematool -initSchema -dbType postgres"
+#   # become: true
+#   become_user: hadoop
+

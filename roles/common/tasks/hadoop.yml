@@ -1,0 +1,67 @@
+---
+- name: Create Hadoop Path
+  file: 
+    path: "{{ item }}"
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    state: directory
+    mode: 0755
+  with_items:
+    - "{{ hadoop_create_path }}"
+
+- name: Download Hadoop
+  shell: "wget -O {{ download_path }}/hadoop-{{ hadoop_version }}.tar.gz https://archive.apache.org/dist/hadoop/common/hadoop-{{ hadoop_version }}/hadoop-{{ hadoop_version }}.tar.gz"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: Unzip Hadoop
+  shell: "tar zxf {{ download_path }}/hadoop-{{hadoop_version}}.tar.gz -C {{ hadoop_path }}"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: Remove Hadoop Directory if already created
+  shell: "rm -rf {{ hadoop_path }}/hadoop"
+  become: true
+  # become_user: "{{ user }}"
+
+- name: Rename Hadoop Dir
+  shell: "mv -f {{ hadoop_path }}/hadoop-{{ hadoop_version }} {{ hadoop_path }}/hadoop"
+  become: true
+  # become_user: "{{ user }}"
+
+
+
+- name: Copy Hadoop core-site.xml
+  template: src=core-site.xml dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+
+- name: Copy Hadoop hdfs-site.xml
+  template: src=hdfs-site.xml dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+
+- name: Copy Hadoop mapred-site.xml
+  template: src=mapred-site.xml dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+
+- name: Copy Hadoop yarn-site.xml
+  template: src=yarn-site.xml dest={{ hadoop_config_path }} mode=644 owner={{ user }}
+
+# - name: Copy Hadoop masters
+#   template: src=masters dest={{ hadoop_config_path }} mode=644 owner={{ user }} group = {{ group }}
+
+# - name: Copy Hadoop slaves
+#   template: src=slaves dest={{ hadoop_config_path }} mode=644 owner={{ user }} group = {{ group }}
+
+- name: Set JAVA_HOME in Hadoop Env
+  lineinfile:
+    dest: "{{ hadoop_config_path }}/hadoop-env.sh"
+    regexp: "^export JAVA_HOME.*$"
+    line: "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64"
+
+- name: Copy Hadoop Env Script
+  template: src=hadoop_env.sh dest=/etc/profile.d/ mode=755
+
+- name: Set Hadoop Env
+  shell: . /etc/profile.d/hadoop_env.sh
+
+- name: set Rights
+  shell: chmod 777 -Rf /home/hadoop/hadoop
+
+  

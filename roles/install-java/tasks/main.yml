@@ -1,0 +1,38 @@
+# tasks file for install-java
+---
+
+- name: Update and upgrade apt packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+    cache_valid_time: 86400
+
+- name: Install OpenJdk.
+  apt: name={{ item }} state=present
+  with_items: "{{ java_packages }}"
+
+- name: Copy Java Home Script
+  template: src=java_home.sh dest=/etc/profile.d
+
+- name: Set Java Home Script
+  shell: . /etc/profile.d/java_home.sh
+
+# - name: Update and upgrade apt packages
+#   apt:
+#     upgrade: yes
+#     update_cache: yes
+#     cache_valid_time: 86400
+    
+# - name: Install OpenJdk.
+#   apt: name={{ item }} state=present
+#   with_items: "{{ java_packages }}"
+
+# - name: Copy Java Home Script
+#   template: src=java_home.sh dest=/etc/profile.d
+
+# - name: Set Java Home Script
+#   shell: . /etc/profile.d/java_home.sh
+
+
+
+

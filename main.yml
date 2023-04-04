@@ -1,0 +1,41 @@
+
+- name: Create Hadoop User on all nodes
+  hosts: all
+  remote_user: ansible_user
+  gather_facts: true
+  become: yes
+  roles:
+    - create-Hadoop-user
+
+- name: Distribute Authentication Key-pairs 
+  hosts: masters
+  remote_user: ansible_user
+  gather_facts: true
+  become: yes 
+  roles:
+    - Distribute-Authentication-KeyPairs      
+
+- name: Install Java 
+  remote_user: ansible_user
+  gather_facts: no
+  become: yes
+  hosts: all
+  roles:
+    - install-java
+
+- name: Install Hadoop
+  hosts: all
+  remote_user: ansible_user
+  gather_facts: no
+  become: yes
+  roles:
+    - install-Hadoop
+
+
+
+
+
+
+      
+  
+

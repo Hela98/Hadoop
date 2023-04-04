@@ -1,0 +1,32 @@
+# tasks file for create-Hadoop-user
+---
+- name: Create host file on each node 
+  template: src=hosts.j2 dest=/etc/hosts mode=0755
+
+- name: Add User 
+  user: name={{user}} shell=/bin/bash append=yes
+
+- name: Check Public Key
+  shell: "ls /home/{{ user }}/.ssh|grep '.pub' |wc -l"
+  register: key_exist
+  ignore_errors: true
+
+- name: Generate Public key
+  user:
+    name: "{{ user }}"
+    generate_ssh_key: yes
+    ssh_key_bits: 2048
+    ssh_key_file: .ssh/id_rsa
+  when: "key_exist.stdout == '0'"
+
+- name: Add user to sudoers and enable passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    regexp: '^{{ user }}  ALL=(ALL) NOPASSWD:ALL'
+    line: '{{ user }}  ALL=(ALL) NOPASSWD:ALL'
+    validate: 'visudo -cf %s'
+
+- name: Install sshpass
+  apt:
+    name: sshpass
+    state: present

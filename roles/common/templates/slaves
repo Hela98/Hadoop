@@ -1,0 +1,4 @@
+{% for item in groups.workers %}
+{{ item[0] }}
+{% endfor %}
+

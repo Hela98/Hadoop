@@ -1,0 +1,9 @@
+---
+master_ip: "{{ ansible_host }}"
+master_hostname: "{{ hostvars[groups.master[0]].hostname }}"
+
+# java version
+jvm_home: "/usr/lib/jvm"
+java_packages:
+ - "openjdk-8-jdk"
+ - "openjdk-8-jre"

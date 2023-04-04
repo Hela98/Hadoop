@@ -1,0 +1,20 @@
+# Edit this file by following the given format:
+# =============================================
+#
+# [group-name] => master or workers
+# <public-ip-address>   hostname=<arbitrary-hostname> internal_ip=<internal-ip>
+# 
+# Example:
+[all]
+hadoop-master   ansible_host=....... internal_ip=  ansible_user=   ansible_ssh_pass= ansible_connection=
+hadoop-node1   ansible_host=........ internal_ip= ansible_user=    ansible_ssh_pass= ansible_connection=
+hadoop-node2   ansible_host=40...... internal_ip= ansible_user=    ansible_ssh_pass=* ansible_connection=
+
+[masters]
+hadoop-master   ansible_host= internal_ip= ansible_user=   ansible_ssh_pass= ansible_connection=
+
+[workers]
+hadoop-node1   ansible_host= internal_ip= ansible_user=    ansible_ssh_pass= ansible_connection=
+hadoop-node2   ansible_host= internal_ip= ansible_user=    ansible_ssh_pass= ansible_connection=
+
+
