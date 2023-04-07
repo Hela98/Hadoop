@@ -13,7 +13,17 @@
   gather_facts: true
   become: yes 
   roles:
-    - Distribute-Authentication-KeyPairs      
+    - Distribute-Authentication-KeyPairs    
+
+- name: Copy key file into the authorized key store
+  hosts: workers
+  remote_user: ansible_user
+  gather_facts: true
+  become: yes 
+  tasks:
+    - name: Copy key file into the authorized key store
+      shell: "cat /home/{{ user }}/.ssh/master.pub >> /home/{{ user }}/.ssh/authorized_keys"
+     
 
 - name: Install Java 
   remote_user: ansible_user
@@ -30,6 +40,20 @@
   become: yes
   roles:
     - install-Hadoop
+
+
+- name: Format HDFS Namenode
+  hosts: masters
+  remote_user: ansible_user
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Format HDFS Namenode
+      shell: hdfs namenode -format -force
+
+     
+      
+
 
 
 

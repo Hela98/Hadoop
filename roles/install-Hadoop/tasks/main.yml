@@ -123,7 +123,7 @@
   lineinfile:
     dest: "/home/{{ user }}/.bashrc"
     regexp: "^export PATH=.*$"
-    line: "export PATH=${PATH}:${HADOOP_HOME}/bin:${HADOOP_HOME}/sbin:${HIVE_HOME}/bin"
+    line: "export PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$HIVE_HOME/bin"
 
 - name: Set JAVA_HOME in Hadoop Env
   lineinfile:
