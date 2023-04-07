@@ -42,14 +42,14 @@
     - install-Hadoop
 
 
-- name: Format HDFS Namenode
-  hosts: masters
-  remote_user: ansible_user
-  gather_facts: no
-  become: yes
-  tasks:
-    - name: Format HDFS Namenode
-      shell: hdfs namenode -format -force
+# - name: Format HDFS Namenode
+#   hosts: masters
+#   remote_user: ansible_user
+#   gather_facts: no
+#   become: yes
+#   tasks:
+#     - name: Format HDFS Namenode
+#       shell: hdfs namenode -format -force
 
      
       
